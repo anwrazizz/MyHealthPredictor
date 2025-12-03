@@ -1,0 +1,57 @@
+<resources>
+    <string name="app_name">MyHealthPredictor</string>
+
+    <string-array name="fcvc_options">
+        <item>Never</item>
+        <item>Sometimes</item>
+        <item>Always</item>
+    </string-array>
+
+    <string-array name="ncp_options">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="caec_options">
+        <item>No</item>
+        <item>Sometimes</item>
+        <item>Frequently</item>
+        <item>Always</item>
+    </string-array>
+
+    <string-array name="ch2o_options">
+        <item>Less than a liter</item>
+        <item>Between 1 and 2 L</item>
+        <item>More than 2 L</item>
+    </string-array>
+
+    <string-array name="faf_options">
+        <item>I do not have</item>
+        <item>1 or 2 days</item>
+        <item>2 or 3 days</item>
+        <item>4 or 5 days</item>
+    </string-array>
+
+    <string-array name="tue_options">
+        <item>0–2 hours</item>
+        <item>3–5 hours</item>
+        <item>More than 5 hours</item>
+    </string-array>
+
+    <string-array name="calc_options">
+        <item>I do not drink</item>
+        <item>Sometimes</item>
+        <item>Frequently</item>
+        <item>Always</item>
+    </string-array>
+
+    <string-array name="mtrans_options">
+        <item>Automobile</item>
+        <item>Motorbike</item>
+        <item>Bike</item>
+        <item>Public Transportation</item>
+        <item>Walking</item>
+    </string-array>
+</resources>

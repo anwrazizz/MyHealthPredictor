@@ -1,0 +1,25 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.MyHealthPredictor" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorPrimaryVariant">@color/green_primary_variant</item>
+        <item name="colorOnPrimary">@color/green_on_primary</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/green_secondary</item>
+        <item name="colorSecondaryVariant">@color/green_secondary</item>
+        <item name="colorOnSecondary">@color/green_on_primary</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/green_background</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
+    <style name="CardStyle">
+        <item name="cardBackgroundColor">@color/green_surface</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">4dp</item>
+    </style>
+</resources>
