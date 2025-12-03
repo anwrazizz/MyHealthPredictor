@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyHealthPredictor">
         <activity
-            android:name=".MainActivity"
+            android:name=".Prediction.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,10 +21,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".PredictionActivity"
+            android:name=".Prediction.PredictionActivity"
             android:exported="false" />
         <activity
-            android:name=".PredictionResultActivity"
+            android:name=".Prediction.PredictionResultActivity"
             android:exported="false" />
     </application>
 
