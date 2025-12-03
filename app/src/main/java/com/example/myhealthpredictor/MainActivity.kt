@@ -2,11 +2,14 @@ package com.example.myhealthpredictor
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.button.MaterialButton
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,29 +17,24 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         
-        // Mengatur padding untuk system bars (status bar, nav bar) agar tidak menimpa konten
+        // Mengatur padding untuk system bars
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // Inisialisasi view tombol menu (menggunakan View karena layout menggunakan CardView/MaterialCardView)
-        val btnPhysicalActivity = findViewById<View>(R.id.btn_physical_activity)
-        val btnWeight = findViewById<View>(R.id.btn_weight)
-        val btnObesityPrediction = findViewById<View>(R.id.btn_obesity_prediction)
+        val btnStartPrediction = findViewById<MaterialButton>(R.id.btn_start_prediction)
 
-        // Set listener untuk navigasi
-        btnPhysicalActivity.setOnClickListener {
-            startActivity(Intent(this, PhysicalActivityActivity::class.java))
-        }
-
-        btnWeight.setOnClickListener {
-            startActivity(Intent(this, WeightLogActivity::class.java))
-        }
-
-        btnObesityPrediction.setOnClickListener {
-            startActivity(Intent(this, PredictionActivity::class.java))
+        btnStartPrediction.setOnClickListener {
+            Log.d("MainActivity", "Start Prediction clicked")
+            try {
+                val intent = Intent(this, PredictionActivity::class.java)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error opening PredictionActivity", e)
+                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

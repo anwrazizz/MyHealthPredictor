@@ -1,16 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">#1D1D1D</color>
+    <color name="white">#FFFFFF</color>
     
-    <!-- Leaf Green Palette -->
-    <color name="green_primary">#4CAF50</color>      <!-- Hijau Daun Cerah -->
-    <color name="green_primary_variant">#388E3C</color> <!-- Hijau Daun Tua -->
-    <color name="green_secondary">#81C784</color>    <!-- Hijau Muda Lembut -->
-    <color name="green_background">#F1F8E9</color>   <!-- Putih Kehijauan (Background) -->
-    <color name="green_surface">#FFFFFF</color>      <!-- Putih Bersih (Card) -->
-    <color name="green_on_primary">#FFFFFF</color>   <!-- Teks di atas Primary -->
-    <color name="green_on_surface">#1B5E20</color>   <!-- Teks Hijau Sangat Tua -->
-    <color name="text_primary">#2E3D2F</color>       <!-- Abu-abu Kehijauan Gelap -->
-    <color name="text_secondary">#556B57</color>     <!-- Abu-abu Kehijauan Sedang -->
+    <!-- Premium Leaf Green Palette -->
+    <color name="green_primary">#2E7D32</color>      <!-- Hijau Daun Matang -->
+    <color name="green_primary_dark">#1B5E20</color> <!-- Hijau Hutan Gelap -->
+    <color name="green_accent">#66BB6A</color>       <!-- Hijau Segar -->
+    <color name="green_background">#F5F9F5</color>   <!-- Putih dengan tint hijau sangat tipis -->
+    <color name="green_surface">#FFFFFF</color>
+    
+    <!-- Missing colors required by themes.xml -->
+    <color name="green_primary_variant">#1B5E20</color> <!-- Same as green_primary_dark -->
+    <color name="green_on_primary">#FFFFFF</color>
+    <color name="green_secondary">#66BB6A</color>       <!-- Same as green_accent -->
+    <color name="text_primary">#1B5E20</color>          <!-- Same as text_title -->
+    <color name="text_secondary">#424242</color>        <!-- Same as text_body -->
+
+    <!-- Text Colors (Legacy/Alternative names) -->
+    <color name="text_title">#1B5E20</color>         
+    <color name="text_body">#424242</color>          
+    <color name="text_hint">#9E9E9E</color>
+    
+    <!-- UI Elements -->
+    <color name="divider">#E0E0E0</color>
+    <color name="card_shadow">#1A000000</color>
 </resources>

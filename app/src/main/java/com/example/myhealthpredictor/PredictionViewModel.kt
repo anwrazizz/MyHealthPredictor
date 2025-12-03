@@ -38,10 +38,34 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
                 ortEnv = OrtEnvironment.getEnvironment()
                 // Baca model dari assets
                 val modelBytes = application.assets.open("obesity_model.onnx").readBytes()
+                
+                // Cek apakah file masih placeholder
+                val contentString = String(modelBytes.take(50).toByteArray())
+                if (contentString.contains("PLACEHOLDER")) {
+                    Log.e("PredictionViewModel", "CRITICAL: File obesity_model.onnx masih file placeholder! Mohon timpa dengan file model asli Anda.")
+                    return@launch
+                }
+
                 ortSession = ortEnv?.createSession(modelBytes)
-                Log.d("PredictionViewModel", "Model ONNX berhasil dimuat.")
+                
+                // --- DEBUGGING INFO MODEL ---
+                // Ini akan mencetak info apa yang diharapkan model ke Logcat
+                ortSession?.let { session ->
+                    Log.d("PredictionViewModel", "Model berhasil dimuat!")
+                    Log.d("PredictionViewModel", "Jumlah Input yang diminta model: ${session.numInputs}")
+                    for ((name, info) in session.inputInfo) {
+                        Log.d("PredictionViewModel", "Input '$name': Info=$info")
+                    }
+                    Log.d("PredictionViewModel", "Jumlah Output model: ${session.numOutputs}")
+                    for ((name, info) in session.outputInfo) {
+                        Log.d("PredictionViewModel", "Output '$name': Info=$info")
+                    }
+                }
+                // -----------------------------
+
             } catch (e: Exception) {
                 Log.e("PredictionViewModel", "Gagal memuat model ONNX: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -58,9 +82,9 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
             if (ortSession != null && ortEnv != null) {
                 result = withContext(Dispatchers.Default) {
                     try {
-                        // 1. Siapkan Input Float Array [1, 17]
-                        // Sesuaikan urutan fitur dengan model Python Anda (misal Scikit-Learn export)
-                        val inputData = FloatArray(17)
+                        // 1. Siapkan Input Float Array [1, 16]
+                        // PENTING: Pastikan model Python Anda dilatih dengan 16 fitur ini secara berurutan!
+                        val inputData = FloatArray(16)
                         
                         inputData[0] = if (gender == "Male") 1f else 0f
                         inputData[1] = age.toFloat()
@@ -81,45 +105,70 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
                             "Automobile" -> 0f; "Motorbike" -> 1f; "Bike" -> 2f; 
                             "Public Transportation" -> 3f; else -> 4f 
                         }
-                        inputData[16] = 0f // Bias/Dummy jika dibutuhkan model, sesuaikan
                         
-                        // Buat Tensor [1, 17]
-                        val shape = longArrayOf(1, 17)
+                        // Ambil nama input pertama dari model
+                        val inputName = ortSession!!.inputNames.iterator().next()
+                        
+                        // Buat Tensor
+                        // Kita coba buat Tensor Float [1, 16]
+                        val shape = longArrayOf(1, 16)
                         val tensor = OnnxTensor.createTensor(ortEnv, FloatBuffer.wrap(inputData), shape)
                         
-                        // Jalankan Inferensi
-                        // Sesuaikan "float_input" dengan nama input layer model ONNX Anda (cek via Netron.app)
-                        // Jika model Scikit-learn, biasanya input bernama "float_input" atau "X"
-                        val inputName = ortSession!!.inputNames.iterator().next() 
                         val inputs = Collections.singletonMap(inputName, tensor)
                         
+                        // JALANKAN INFERENSI
                         val results = ortSession!!.run(inputs)
                         
-                        // Ambil Output
-                        // Scikit-learn biasanya output: [0] = Label (Int/Long), [1] = Probabilities
-                        // Jika model NN (PyTorch/TF), biasanya output: [1, 7] probabilities
+                        // AMBIL HASIL
+                        // Cek tipe output pertama
+                        val outputData = results[0]
                         
-                        val outputTensor = results[0] as OnnxTensor
-                        val outputValue = outputTensor.value as? LongArray 
+                        var predictedIndex = 0
+                        
+                        // Logika penanganan output Scikit-Learn vs Deep Learning biasa
+                        if (outputData.info.toString().contains("INT64") || outputData.info.toString().contains("Long")) {
+                             // Scikit-Learn biasanya mengembalikan Label Kelas langsung (Misal: angka 0-6 atau String) di output ke-0
+                             val outputTensor = outputData as OnnxTensor
+                             val outputValue = outputTensor.value as? LongArray 
                                           ?: (outputTensor.value as? Array<Long>)?.toLongArray()
-                        
-                        // Mapping Hasil Prediksi (Asumsi output adalah Index Kelas 0-6)
-                        val predictedIndex = outputValue?.get(0)?.toInt() ?: 0
+                             predictedIndex = outputValue?.get(0)?.toInt() ?: 0
+                             
+                        } else if (outputData.info.toString().contains("FLOAT")) {
+                            // Model Deep Learning biasanya mengembalikan Probabilitas [0.1, 0.8, 0.05...]
+                            // Kita harus cari nilai max (ArgMax)
+                            val outputTensor = outputData as OnnxTensor
+                            val floatArray = outputTensor.floatBuffer.array() // asumsi flat array
+                            // Cari index dengan nilai terbesar
+                            var maxVal = -Float.MAX_VALUE
+                            for (i in floatArray.indices) {
+                                if (floatArray[i] > maxVal) {
+                                    maxVal = floatArray[i]
+                                    predictedIndex = i
+                                }
+                            }
+                        }
                         
                         val classes = arrayOf(
                             "Underweight", "Normal Weight", 
                             "Overweight Level I", "Overweight Level II", 
                             "Obesity Type I", "Obesity Type II", "Obesity Type III"
                         )
-                        classes.getOrElse(predictedIndex) { "Unknown" }
+                        
+                        // Safety check index
+                        if (predictedIndex in classes.indices) {
+                             classes[predictedIndex]
+                        } else {
+                             "Unknown Class ($predictedIndex)"
+                        }
                         
                     } catch (e: Exception) {
-                        Log.e("PredictionViewModel", "Error ONNX Inference: ${e.message}")
+                        Log.e("PredictionViewModel", "ERROR SAAT PREDIKSI ONNX: ${e.message}")
+                        e.printStackTrace() // Ini akan mencetak detail error shape mismatch di logcat
                         calculateBmiBased(weight, height)
                     }
                 }
             } else {
-                // Fallback Manual
+                Log.w("PredictionViewModel", "Model belum siap, menggunakan BMI.")
                 result = calculateBmiBased(weight, height)
             }
             

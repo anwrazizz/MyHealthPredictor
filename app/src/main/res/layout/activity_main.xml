@@ -1,218 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/green_background"
-    android:fillViewport="true"
+    android:background="@color/white"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <!-- Background Image / Illustration Area -->
+    <View
+        android:id="@+id/view_background_top"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:background="@drawable/header_background"
+        app:layout_constraintHeight_percent="0.55"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Header Section -->
+    <ImageView
+        android:id="@+id/iv_illustration"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:src="@drawable/ic_leaf_logo"
+        app:tint="@color/white"
+        android:alpha="0.9"
+        app:layout_constraintBottom_toBottomOf="@id/view_background_top"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.4" />
+
+    <!-- Content Area -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="-40dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/view_background_top">
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/header_background"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:padding="32dp"
-            android:gravity="center_vertical">
+            android:gravity="center_horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Selamat Datang,"
-                android:textColor="@color/white"
-                android:textSize="18sp"
-                android:alpha="0.9" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:text="My Health Predictor"
-                android:textColor="@color/white"
+                android:textColor="@color/green_primary"
                 android:textSize="28sp"
                 android:textStyle="bold"
-                android:layout_marginTop="4dp"/>
-            
+                android:textAlignment="center"/>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Jaga kesehatanmu setiap hari"
+                android:layout_marginTop="12dp"
+                android:text="Pantau risiko kesehatan Anda dengan teknologi AI terkini. Akurat, cepat, dan mudah digunakan."
+                android:textColor="@color/text_body"
+                android:textSize="16sp"
+                android:textAlignment="center"
+                android:lineSpacingExtra="4dp"
+                android:alpha="0.8"/>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Main Action Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_start_prediction"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:text="Mulai Analisa Kesehatan"
+                android:textSize="16sp"
+                android:textStyle="bold"
                 android:textColor="@color/white"
-                android:textSize="14sp"
-                android:alpha="0.8"
-                android:layout_marginTop="8dp"/>
+                app:cornerRadius="32dp"
+                app:backgroundTint="@color/green_primary"
+                app:elevation="8dp"
+                app:icon="@android:drawable/ic_menu_compass"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:iconTint="@color/white"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Versi 1.0 • Powered by ONNX AI"
+                android:textSize="12sp"
+                android:textColor="@color/text_hint"/>
 
         </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
-        <!-- Menu Grid -->
-        <GridLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:columnCount="1"
-            android:padding="16dp"
-            android:useDefaultMargins="true">
-
-            <!-- Menu: Aktivitas Fisik -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btn_physical_activity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="@color/white"
-                app:rippleColor="@color/green_secondary">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="24dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@android:drawable/ic_menu_directions"
-                        app:tint="@color/green_primary" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginStart="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Aktivitas Fisik"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Catat dan pantau gerakanmu"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_secondary" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Menu: Berat Badan -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btn_weight"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="@color/white"
-                app:rippleColor="@color/green_secondary">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="24dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@android:drawable/ic_menu_my_calendar"
-                        app:tint="@color/green_primary" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginStart="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Log Berat Badan"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pantau progres berat badanmu"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_secondary" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Menu: Prediksi Obesitas -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btn_obesity_prediction"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="@color/green_primary"
-                app:rippleColor="@color/green_primary_variant">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="24dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@android:drawable/ic_menu_compass"
-                        app:tint="@color/white" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginStart="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Prediksi Obesitas"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/white" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Cek risiko kesehatanmu sekarang"
-                            android:textSize="14sp"
-                            android:textColor="@color/green_background" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-        </GridLayout>
-    </LinearLayout>
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

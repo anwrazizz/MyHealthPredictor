@@ -21,12 +21,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".PhysicalActivityActivity"
-            android:exported="false" />
-        <activity
-            android:name=".WeightLogActivity"
-            android:exported="false" />
-        <activity
             android:name=".PredictionActivity"
             android:exported="false" />
         <activity
