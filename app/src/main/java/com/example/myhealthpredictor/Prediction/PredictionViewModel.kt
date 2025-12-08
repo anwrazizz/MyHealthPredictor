@@ -3,7 +3,6 @@ package com.example.myhealthpredictor.Prediction
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
-import ai.onnxruntime.OrtSession.Result
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -14,7 +13,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Collections
 
 class PredictionViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -27,6 +25,17 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
     private var ortEnv: OrtEnvironment? = null
     private var ortSession: OrtSession? = null
 
+    // Label kelas obesitas
+    private val obesityClasses = arrayOf(
+        "Insufficient Weight",
+        "Normal Weight",
+        "Overweight Level I",
+        "Overweight Level II",
+        "Obesity Type I",
+        "Obesity Type II",
+        "Obesity Type III"
+    )
+
     init {
         val database = AppDatabase.getDatabase(application)
         repository = database.predictionHistoryDao()
@@ -36,46 +45,35 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 ortEnv = OrtEnvironment.getEnvironment()
-                // Baca model dari assets
                 val modelBytes = application.assets.open("obesity_model.onnx").readBytes()
 
-                // Cek apakah file masih placeholder
-                val contentString = String(modelBytes.take(50).toByteArray())
-                if (contentString.contains("PLACEHOLDER")) {
-                    Log.e("PredictionViewModel", "CRITICAL: File obesity_model.onnx masih file placeholder! Mohon timpa dengan file model asli Anda.")
+                // Validasi file bukan placeholder
+                val contentString = String(modelBytes.take(100).toByteArray())
+                if (contentString.contains("PLACEHOLDER", ignoreCase = true)) {
+                    Log.e("PredictionViewModel", "ERROR: File obesity_model.onnx masih placeholder!")
                     return@launch
                 }
 
                 ortSession = ortEnv?.createSession(modelBytes)
 
-                // --- DEBUGGING INFO MODEL ---
-                // Ini akan mencetak info apa yang diharapkan model ke Logcat
+                // Log info model
                 ortSession?.let { session ->
-                    Log.d("PredictionViewModel", "Model berhasil dimuat!")
-                    Log.d("PredictionViewModel", "Jumlah Input yang diminta model: ${session.numInputs}")
-                    for ((name, info) in session.inputInfo) {
-                        Log.d("PredictionViewModel", "Input '$name': Info=$info")
+                    Log.d("ONNX", "✓ Model berhasil dimuat")
+                    Log.d("ONNX", "Jumlah Input: ${session.numInputs}")
+                    session.inputInfo.forEach { (name, info) ->
+                        Log.d("ONNX", "Input: $name -> $info")
                     }
-                    Log.d("PredictionViewModel", "Jumlah Output model: ${session.numOutputs}")
-                    for ((name, info) in session.outputInfo) {
-                        Log.d("PredictionViewModel", "Output '$name': Info=$info")
+                    Log.d("ONNX", "Jumlah Output: ${session.numOutputs}")
+                    session.outputInfo.forEach { (name, info) ->
+                        Log.d("ONNX", "Output: $name -> $info")
                     }
                 }
-                // -----------------------------
-
             } catch (e: Exception) {
-                Log.e("PredictionViewModel", "Gagal memuat model ONNX: ${e.message}")
-                e.printStackTrace()
+                Log.e("ONNX", "Gagal memuat model: ${e.message}", e)
             }
         }
     }
 
-    /**
-     * Perbaikan predict:
-     * - Mengirim input sesuai model: beberapa tensor float [1,1], beberapa tensor string [1,1]
-     * - Menghitung BMI karena model menerima BMI (bukan height & weight terpisah)
-     * - Menutup semua OnnxTensor dan Result setelah penggunaan
-     */
     fun predict(
         gender: String, age: Int, height: Float, weight: Float,
         familyHistory: Boolean, favc: Boolean, fcvc: Int, ncp: Int,
@@ -83,169 +81,21 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
         faf: Int, tue: Int, calc: String, mtrans: String
     ) {
         viewModelScope.launch {
-            var result = ""
-
-            if (ortSession != null && ortEnv != null) {
-                result = withContext(Dispatchers.Default) {
-                    // Siapkan koleksi tensor agar bisa ditutup di finally
-                    val createdTensors = mutableListOf<OnnxTensor>()
-                    var runResult: Result? = null
-                    try {
-                        val env = ortEnv!!
-
-                        // Hitung BMI (model menerima BMI)
-                        val h = if (height > 3.0f) height / 100f else height
-                        val bmiValue = weight / (h * h)
-
-                        // Buat map input sesuai nama yang tertera di model (case-sensitive)
-                        val inputs = mutableMapOf<String, OnnxTensor>()
-
-                        // FLOAT inputs -> bentuk [1,1] menggunakan arrayOf(floatArrayOf(...))
-                        val ageTensor = OnnxTensor.createTensor(env, arrayOf(floatArrayOf(age.toFloat())))
-                        inputs["Age"] = ageTensor
-                        createdTensors.add(ageTensor)
-
-                        val bmiTensor = OnnxTensor.createTensor(env, arrayOf(floatArrayOf(bmiValue)))
-                        inputs["BMI"] = bmiTensor
-                        createdTensors.add(bmiTensor)
-
-                        val fcvcTensor = OnnxTensor.createTensor(env, arrayOf(floatArrayOf(fcvc.toFloat())))
-                        inputs["FCVC"] = fcvcTensor
-                        createdTensors.add(fcvcTensor)
-
-                        val ncpTensor = OnnxTensor.createTensor(env, arrayOf(floatArrayOf(ncp.toFloat())))
-                        inputs["NCP"] = ncpTensor
-                        createdTensors.add(ncpTensor)
-
-                        val ch2oTensor = OnnxTensor.createTensor(env, arrayOf(floatArrayOf(ch2o.toFloat())))
-                        inputs["CH2O"] = ch2oTensor
-                        createdTensors.add(ch2oTensor)
-
-                        val fafTensor = OnnxTensor.createTensor(env, arrayOf(floatArrayOf(faf.toFloat())))
-                        inputs["FAF"] = fafTensor
-                        createdTensors.add(fafTensor)
-
-                        val tueTensor = OnnxTensor.createTensor(env, arrayOf(floatArrayOf(tue.toFloat())))
-                        inputs["TUE"] = tueTensor
-                        createdTensors.add(tueTensor)
-
-                        // STRING inputs -> bentuk [1,1] menggunakan arrayOf(arrayOf(string))
-                        val genderTensor = OnnxTensor.createTensor(env, arrayOf(arrayOf(gender)))
-                        inputs["Gender"] = genderTensor
-                        createdTensors.add(genderTensor)
-
-                        val calcTensor = OnnxTensor.createTensor(env, arrayOf(arrayOf(calc)))
-                        inputs["CALC"] = calcTensor
-                        createdTensors.add(calcTensor)
-
-                        // FAVC, SCC, SMOKE, family_history_with_overweight are strings in model dataset ("yes"/"no")
-                        val favcStr = if (favc) "yes" else "no"
-                        val favcTensor = OnnxTensor.createTensor(env, arrayOf(arrayOf(favcStr)))
-                        inputs["FAVC"] = favcTensor
-                        createdTensors.add(favcTensor)
-
-                        val sccStr = if (scc) "yes" else "no"
-                        val sccTensor = OnnxTensor.createTensor(env, arrayOf(arrayOf(sccStr)))
-                        inputs["SCC"] = sccTensor
-                        createdTensors.add(sccTensor)
-
-                        val smokeStr = if (smoke) "yes" else "no"
-                        val smokeTensor = OnnxTensor.createTensor(env, arrayOf(arrayOf(smokeStr)))
-                        inputs["SMOKE"] = smokeTensor
-                        createdTensors.add(smokeTensor)
-
-                        val familyHistoryStr = if (familyHistory) "yes" else "no"
-                        val famTensor = OnnxTensor.createTensor(env, arrayOf(arrayOf(familyHistoryStr)))
-                        inputs["family_history_with_overweight"] = famTensor
-                        createdTensors.add(famTensor)
-
-                        // CAEC and MTRANS as-is from dataset (strings)
-                        val caecTensor = OnnxTensor.createTensor(env, arrayOf(arrayOf(caec)))
-                        inputs["CAEC"] = caecTensor
-                        createdTensors.add(caecTensor)
-
-                        val mtransTensor = OnnxTensor.createTensor(env, arrayOf(arrayOf(mtrans)))
-                        inputs["MTRANS"] = mtransTensor
-                        createdTensors.add(mtransTensor)
-
-                        // Debug: Log nama input yang dikirim (opsional)
-                        Log.d("PredictionViewModel", "Menjalankan inferensi dengan inputs: ${inputs.keys}")
-
-                        // RUN INFERENCE
-                        runResult = ortSession!!.run(inputs)
-
-                        // Ambil output_label (output pertama sesuai model)
-                        // output_label bertipe INT64 (node info menunjukkan INT64)
-                        val out0 = runResult[0]
-                        val predictedIndex: Int = try {
-                            val outTensor = out0 as OnnxTensor
-                            // ONNX Runtime for Java dapat mengembalikan LongArray atau Array<Long>
-                            val value = outTensor.value
-                            when (value) {
-                                is LongArray -> value[0].toInt()
-                                is Array<*> -> {
-                                    // bisa jadi Array<Long>
-                                    val arr = value as Array<Long>
-                                    arr[0].toInt()
-                                }
-                                else -> {
-                                    Log.w("PredictionViewModel", "Tipe output tidak dikenali: ${value?.javaClass}")
-                                    0
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Log.e("PredictionViewModel", "Gagal membaca output_label: ${e.message}")
-                            0
-                        }
-
-                        // Mapping index ke label yang lebih manusiawi
-                        val classes = arrayOf(
-                            "Underweight",           // 0
-                            "Normal Weight",         // 1
-                            "Overweight Level I",    // 2
-                            "Overweight Level II",   // 3
-                            "Obesity Type I",        // 4
-                            "Obesity Type II",       // 5
-                            "Obesity Type III"       // 6
-                        )
-
-                        val predictedLabel = if (predictedIndex in classes.indices) {
-                            classes[predictedIndex]
-                        } else {
-                            "Unknown Class ($predictedIndex)"
-                        }
-
-                        predictedLabel
-
-                    } catch (e: Exception) {
-                        Log.e("PredictionViewModel", "ERROR SAAT PREDIKSI ONNX: ${e.message}")
-                        e.printStackTrace()
-                        // fallback jika ada kegagalan inferensi
-                        calculateBmiBased(weight, height)
-                    } finally {
-                        // Tutup run result dan semua tensor yang dibuat
-                        try {
-                            runResult?.close()
-                        } catch (e: Exception) {
-                            Log.w("PredictionViewModel", "Gagal menutup runResult: ${e.message}")
-                        }
-                        for (t in createdTensors) {
-                            try {
-                                t.close()
-                            } catch (e: Exception) {
-                                // ignore
-                            }
-                        }
-                    }
+            val result = if (ortSession != null && ortEnv != null) {
+                withContext(Dispatchers.Default) {
+                    runOnnxInference(
+                        gender, age, height, weight, familyHistory, favc, fcvc, ncp,
+                        caec, smoke, ch2o, scc, faf, tue, calc, mtrans
+                    )
                 }
             } else {
-                Log.w("PredictionViewModel", "Model belum siap, menggunakan BMI.")
-                result = calculateBmiBased(weight, height)
+                Log.w("ONNX", "Model belum siap, menggunakan fallback BMI")
+                calculateBmiFallback(weight, height)
             }
 
             _predictionResult.value = result
 
-            // Simpan Riwayat
+            // Simpan ke database
             val history = PredictionHistory(
                 gender = gender, age = age, height = height, weight = weight,
                 familyHistoryWithOverweight = familyHistory, favc = favc, fcvc = fcvc,
@@ -257,16 +107,116 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private fun calculateBmiBased(weight: Float, height: Float): String {
-        val h = if (height > 3.0) height / 100 else height
+    private fun runOnnxInference(
+        gender: String, age: Int, height: Float, weight: Float,
+        familyHistory: Boolean, favc: Boolean, fcvc: Int, ncp: Int,
+        caec: String, smoke: Boolean, ch2o: Int, scc: Boolean,
+        faf: Int, tue: Int, calc: String, mtrans: String
+    ): String {
+        val tensors = mutableListOf<OnnxTensor>()
+        var result: OrtSession.Result? = null
+
+        return try {
+            val env = ortEnv!!
+
+            // Hitung BMI (tinggi dalam meter)
+            val heightInMeters = if (height > 3.0f) height / 100f else height
+            val bmi = weight / (heightInMeters * heightInMeters)
+
+            // Buat input tensors sesuai model ONNX
+            val inputs = mutableMapOf<String, OnnxTensor>()
+
+            // Float inputs [1,1]
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(floatArrayOf(age.toFloat()))).also {
+                inputs["Age"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(floatArrayOf(bmi))).also {
+                inputs["BMI"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(floatArrayOf(fcvc.toFloat()))).also {
+                inputs["FCVC"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(floatArrayOf(ncp.toFloat()))).also {
+                inputs["NCP"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(floatArrayOf(ch2o.toFloat()))).also {
+                inputs["CH2O"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(floatArrayOf(faf.toFloat()))).also {
+                inputs["FAF"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(floatArrayOf(tue.toFloat()))).also {
+                inputs["TUE"] = it
+            })
+
+            // String inputs [1,1]
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(arrayOf(gender))).also {
+                inputs["Gender"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(arrayOf(calc))).also {
+                inputs["CALC"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(arrayOf(if (favc) "yes" else "no"))).also {
+                inputs["FAVC"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(arrayOf(if (scc) "yes" else "no"))).also {
+                inputs["SCC"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(arrayOf(if (smoke) "yes" else "no"))).also {
+                inputs["SMOKE"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(arrayOf(if (familyHistory) "yes" else "no"))).also {
+                inputs["family_history_with_overweight"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(arrayOf(caec))).also {
+                inputs["CAEC"] = it
+            })
+            tensors.add(OnnxTensor.createTensor(env, arrayOf(arrayOf(mtrans))).also {
+                inputs["MTRANS"] = it
+            })
+
+            Log.d("ONNX", "Menjalankan inferensi dengan ${inputs.size} inputs")
+
+            // Run model
+            result = ortSession!!.run(inputs)
+
+            // Ambil output (index prediksi)
+            val outputTensor = result[0] as OnnxTensor
+            val predictedIndex = when (val value = outputTensor.value) {
+                is LongArray -> value[0].toInt()
+                is Array<*> -> (value as Array<Long>)[0].toInt()
+                else -> {
+                    Log.w("ONNX", "Tipe output tidak dikenali: ${value?.javaClass}")
+                    0
+                }
+            }
+
+            // Map ke label
+            if (predictedIndex in obesityClasses.indices) {
+                obesityClasses[predictedIndex]
+            } else {
+                "Unknown Class ($predictedIndex)"
+            }
+
+        } catch (e: Exception) {
+            Log.e("ONNX", "Error saat inferensi: ${e.message}", e)
+            calculateBmiFallback(weight, height)
+        } finally {
+            result?.close()
+            tensors.forEach { it.close() }
+        }
+    }
+
+    private fun calculateBmiFallback(weight: Float, height: Float): String {
+        val h = if (height > 3.0f) height / 100f else height
         val bmi = weight / (h * h)
         return when {
-            bmi < 18.5 -> "Underweight"
+            bmi < 18.5 -> "Insufficient Weight"
             bmi < 25.0 -> "Normal Weight"
-            bmi < 30.0 -> "Overweight Level I"
-            bmi < 35.0 -> "Overweight Level II"
-            bmi < 40.0 -> "Obesity Type I"
-            bmi < 50.0 -> "Obesity Type II"
+            bmi < 27.0 -> "Overweight Level I"
+            bmi < 30.0 -> "Overweight Level II"
+            bmi < 35.0 -> "Obesity Type I"
+            bmi < 40.0 -> "Obesity Type II"
             else -> "Obesity Type III"
         }
     }
@@ -277,7 +227,7 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
             ortSession?.close()
             ortEnv?.close()
         } catch (e: Exception) {
-            Log.e("PredictionViewModel", "Error closing ONNX resources: ${e.message}")
+            Log.e("ONNX", "Error menutup ONNX: ${e.message}")
         }
     }
 }

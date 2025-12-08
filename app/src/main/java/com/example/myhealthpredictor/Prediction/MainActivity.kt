@@ -11,7 +11,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.myhealthpredictor.Prediction.PredictionActivity
 import com.example.myhealthpredictor.R
 import com.google.android.material.button.MaterialButton
-
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
