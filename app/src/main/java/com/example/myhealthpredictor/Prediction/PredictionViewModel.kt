@@ -27,13 +27,13 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
 
     // Label kelas obesitas
     private val obesityClasses = arrayOf(
-        "Insufficient Weight",
-        "Normal Weight",
-        "Overweight Level I",
-        "Overweight Level II",
-        "Obesity Type I",
-        "Obesity Type II",
-        "Obesity Type III"
+        "Berat Badan Kurang",
+        "Berat Badan Normal",
+        "Kelebihan Berat Badan Tingkat I",
+        "Kelebihan Berat Badan Tingkat II",
+        "Obesitas Tipe I",
+        "Obesitas Tipe II",
+        "Obesitas Tipe III"
     )
 
     init {
@@ -211,13 +211,13 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
         val h = if (height > 3.0f) height / 100f else height
         val bmi = weight / (h * h)
         return when {
-            bmi < 18.5 -> "Insufficient Weight"
-            bmi < 25.0 -> "Normal Weight"
-            bmi < 27.0 -> "Overweight Level I"
-            bmi < 30.0 -> "Overweight Level II"
-            bmi < 35.0 -> "Obesity Type I"
-            bmi < 40.0 -> "Obesity Type II"
-            else -> "Obesity Type III"
+            bmi < 18.5 -> "Berat Badan Kurang"
+            bmi < 25.0 -> "Berat Badan Normal"
+            bmi < 27.0 -> "Kelebihan Berat Badan Tingkat I"
+            bmi < 30.0 -> "Kelebihan Berat Badan Tingkat II"
+            bmi < 35.0 -> "Obesitas Tipe I"
+            bmi < 40.0 -> "Obesitas Tipe II"
+            else -> "Obesitas Tipe III"
         }
     }
 
