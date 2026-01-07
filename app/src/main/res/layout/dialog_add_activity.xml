@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nama Aktivitas"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="#212121"/>
+
+    <EditText
+        android:id="@+id/et_activity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Contoh: Lari, Sepeda, Renang"
+        android:inputType="text"
+        android:padding="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/edit_text_background"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Durasi (menit)"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="#212121"
+        android:layout_marginTop="20dp"/>
+
+    <EditText
+        android:id="@+id/et_duration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Contoh: 30"
+        android:inputType="number"
+        android:padding="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/edit_text_background"/>
+
+</LinearLayout>

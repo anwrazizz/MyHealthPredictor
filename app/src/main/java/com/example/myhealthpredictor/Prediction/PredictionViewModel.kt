@@ -10,6 +10,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,6 +28,11 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
 
     private var ortEnv: OrtEnvironment? = null
     private var ortSession: OrtSession? = null
+
+    // Firebase
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    private val db: FirebaseFirestore = Firebase.firestore
 
     // Label kelas obesitas
     private val obesityClasses = arrayOf(
@@ -95,7 +104,7 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
 
             _predictionResult.value = result
 
-            // Simpan ke database
+            // Simpan ke Room database (lokal)
             val history = PredictionHistory(
                 gender = gender, age = age, height = height, weight = weight,
                 familyHistoryWithOverweight = familyHistory, favc = favc, fcvc = fcvc,
@@ -104,7 +113,63 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
                 nobeyerere = result, date = System.currentTimeMillis()
             )
             repository.insert(history)
+
+            // Simpan ke Firestore
+            savePredictionToFirestore(
+                gender, age, height, weight, familyHistory, favc, fcvc, ncp,
+                caec, smoke, ch2o, scc, faf, tue, calc, mtrans, result
+            )
         }
+    }
+
+    private fun savePredictionToFirestore(
+        gender: String, age: Int, height: Float, weight: Float,
+        familyHistory: Boolean, favc: Boolean, fcvc: Int, ncp: Int,
+        caec: String, smoke: Boolean, ch2o: Int, scc: Boolean,
+        faf: Int, tue: Int, calc: String, mtrans: String, result: String
+    ) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Log.w("PredictionViewModel", "User not logged in, skipping Firestore save")
+            return
+        }
+
+        // Hitung BMI
+        val heightInMeters = if (height > 3.0f) height / 100f else height
+        val bmi = weight / (heightInMeters * heightInMeters)
+
+        val prediction = hashMapOf(
+            "userId" to currentUser.uid,
+            "gender" to gender,
+            "age" to age,
+            "height" to height,
+            "weight" to weight,
+            "bmi" to bmi,
+            "familyHistory" to familyHistory,
+            "favc" to favc,
+            "fcvc" to fcvc,
+            "ncp" to ncp,
+            "caec" to caec,
+            "smoke" to smoke,
+            "ch2o" to ch2o,
+            "scc" to scc,
+            "faf" to faf,
+            "tue" to tue,
+            "calc" to calc,
+            "mtrans" to mtrans,
+            "result" to result,
+            "date" to System.currentTimeMillis(),
+            "createdAt" to System.currentTimeMillis()
+        )
+
+        db.collection("predictions")
+            .add(prediction)
+            .addOnSuccessListener { documentReference ->
+                Log.d("PredictionViewModel", "Prediction saved to Firestore with ID: ${documentReference.id}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("PredictionViewModel", "Error saving prediction to Firestore: ${e.message}", e)
+            }
     }
 
     private fun runOnnxInference(

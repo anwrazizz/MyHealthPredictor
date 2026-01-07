@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "120174289022",
+    "project_id": "myhealthpredictor",
+    "storage_bucket": "myhealthpredictor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:120174289022:android:a832f96add1d328a26f82f",
+        "android_client_info": {
+          "package_name": "com.example.myhealthpredictor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlL0PEXI4xXCsCxgMsQHnf4lWYPl68YB4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- Icon -->
+        <TextView
+            android:id="@+id/tv_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="⚖️"
+            android:textSize="24sp"
+            android:gravity="center"
+            android:background="@drawable/circle_bg_soft_green"/>
+
+        <!-- Content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Berat Badan"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_title"/>
+
+            <TextView
+                android:id="@+id/tv_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="01 Januari 2024"
+                android:textSize="12sp"
+                android:textColor="@color/text_body"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
+
+        <!-- Value -->
+        <TextView
+            android:id="@+id/tv_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="68.5 kg"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_primary"
+            android:layout_marginStart="16dp"/>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

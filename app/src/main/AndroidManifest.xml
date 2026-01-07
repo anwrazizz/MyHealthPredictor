@@ -11,21 +11,57 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyHealthPredictor">
+
+        <!-- Login Activity sebagai Launcher (Splash Screen) -->
         <activity
-            android:name=".Prediction.MainActivity"
-            android:exported="true">
+            android:name=".Auth.LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MyHealthPredictor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Register Activity -->
+        <activity
+            android:name=".Auth.RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyHealthPredictor" />
+
+        <!-- Dashboard Activity -->
+        <activity
+            android:name=".Dashboard.DashboardActivity"
+            android:exported="false" />
+
+        <!-- Main Dashboard Activity (Old - bisa dihapus jika tidak dipakai) -->
+        <activity
+            android:name=".Prediction.MainActivity"
+            android:exported="false" />
+
+        <!-- Prediction Form Activity -->
         <activity
             android:name=".Prediction.PredictionActivity"
             android:exported="false" />
+
+        <!-- Prediction Result Activity -->
         <activity
             android:name=".Prediction.PredictionResultActivity"
             android:exported="false" />
+
+        <!-- Weight Log Activity -->
+        <activity
+            android:name=".WeightLog.WeightLogActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ActivityLog.ActivityLogActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".History.HistoryActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

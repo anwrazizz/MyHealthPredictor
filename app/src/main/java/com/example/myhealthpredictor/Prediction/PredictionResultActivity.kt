@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.myhealthpredictor.Dashboard.DashboardActivity
 import com.example.myhealthpredictor.R
 
 class PredictionResultActivity : AppCompatActivity() {
@@ -42,7 +43,7 @@ class PredictionResultActivity : AppCompatActivity() {
 
         // Selesai -> kembali ke dashboard utama
         finishButton.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, DashboardActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
             finish()
